@@ -10,22 +10,19 @@ with open('domains.csv', 'rb') as csvfile:
     for row in reader:
         domains.append(row[0])
 
-for company in domains:
-    getter = "https://api.hunter.io/v2/domain-search?domain=" + company + "&api_key=ae4f979860e00b77649e67369a77064e75f58fff"
-    response = requests.get(getter)
-    response_parsed = json.loads(response.text)
-    emp_data = response_parsed["data"]["emails"]
+with open('EmployData.csv', 'w') as employData:
 
-#    for x in range(0, len(domains)):
-
-    with open(('EmployData(%s).csv' % company), 'w') as employData:
-
+    for company in domains:
+        getter = "https://api.hunter.io/v2/domain-search?domain=" + company + "&api_key=ae4f979860e00b77649e67369a77064e75f58fff"
+        response = requests.get(getter)
+        response_parsed = json.loads(response.text)
+        emp_data = response_parsed["data"]["emails"]
         empWriter = csv.writer(employData, delimiter=',')
 
         for y in range(0, len(emp_data)):
             empWriter.writerow([emp_data[y]["first_name"]] + [emp_data[y]["last_name"]] + [emp_data[y]["value"]] + [emp_data[y]["position"]])
 
-        employData.close()
+#        employData.close()
 
 #first_name = emp_data[0]["first_name"]
 #last_name = emp_data[0]["last_name"]
