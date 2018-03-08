@@ -9,6 +9,7 @@ first_names = []
 last_names = []
 domains = []
 
+
 with open('EmployeeInput.csv', 'rb') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     for row in reader:
@@ -17,6 +18,9 @@ with open('EmployeeInput.csv', 'rb') as csvfile:
         last_names.append(row[2])
 
 with open('EmployeeOutput.csv', 'w') as employData:
+
+    empWriter = csv.writer(employData, delimiter=',')
+    empWriter.writerow(["First Name"] + ["Last Name"] + ["Hunter Email"] + ["Hunter Score"] + ["VoilaNorbert Email"] + ["VoilaNorbert Score"])
 
     for index in range(0, len(domains)):
 
@@ -28,10 +32,39 @@ with open('EmployeeOutput.csv', 'w') as employData:
         emp_data_hunter = response_hunter_parsed["data"]
 
         #Voila Norbert Search Script
-        
+        req = requests.post(
+        'https://api.voilanorbert.com/2016-01-04/search/name',
+        auth=('any_string', NorbertAPI_TOKEN),
+        data = {
+            'name': first_names[index] + ' ' + last_names[index],
+            'domain': domains[index]
+            }
+        )
 
-        empWriter = csv.writer(employData, delimiter=',')
-        empWriter.writerow([emp_data_hunter["first_name"]] + [emp_data_hunter["last_name"]] + [emp_data_hunter["email"]] + [emp_data_hunter["score"]])
+        result = req.json()
+
+        while True:
+            contact_r = requests.get('https://api.voilanorbert.com/2016-01-04/contacts/{0}'.format(result['id']), auth=('any_string', NorbertAPI_TOKEN))
+            if contact_r.status_code == 200:
+                contact = contact_r.json()
+
+            if contact['searching'] is False:
+                # TODO : Update your database here
+                if contact['email']:
+                    # Email found !
+                    emp_data_norbert = contact['email']
+                else:
+                    print "Email not found!"
+                break
+
+        empWriter.writerow(
+            [emp_data_hunter["first_name"]]
+            + [emp_data_hunter["last_name"]]
+            + [emp_data_hunter["email"]]
+            + [emp_data_hunter["score"]]
+            + [emp_data_norbert["email"]]
+            + [emp_data_norbert["score"]]
+            )
 
 employData.close()
 
