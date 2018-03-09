@@ -8,7 +8,12 @@ NorbertAPI_TOKEN = 'b8fc1282-6c0d-4679-b8b7-18424c23afb1'
 first_names = []
 last_names = []
 domains = []
-
+hunter_emails = []
+hunter_scores = []
+norbert_emails = []
+norbert_scores = []
+verify_results = []
+verify_scores = []
 
 with open('EmployeeInput.csv', 'rb') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
@@ -20,7 +25,7 @@ with open('EmployeeInput.csv', 'rb') as csvfile:
 with open('EmployeeOutput.csv', 'w') as employData:
 
     empWriter = csv.writer(employData, delimiter=',')
-    empWriter.writerow(["First Name"] + ["Last Name"] + ["Hunter Email"] + ["Hunter Score"] + ["VoilaNorbert Email"] + ["VoilaNorbert Score"])
+    empWriter.writerow(["Domain"] + ["First Name"] + ["Last Name"] + ["Hunter Email"] + ["Hunter Score"] + ["VoilaNorbert Email"] + ["VoilaNorbert Score"] + ["Deliverable?"] + ["Deliverability Score"])
 
     for index in range(0, len(domains)):
 
@@ -30,6 +35,9 @@ with open('EmployeeOutput.csv', 'w') as employData:
         response_hunter = requests.get(hunter)
         response_hunter_parsed = json.loads(response_hunter.text)
         emp_data_hunter = response_hunter_parsed["data"]
+
+        hunter_emails.append(emp_data_hunter["email"])
+        hunter_scores.append(emp_data_hunter["score"])
 
         #Voila Norbert Search Script
         req = requests.post(
@@ -53,17 +61,43 @@ with open('EmployeeOutput.csv', 'w') as employData:
                 if contact['email']:
                     # Email found !
                     emp_data_norbert = contact['email']
+                    norbert_emails.append(emp_data_norbert["email"])
+                    norbert_scores.append(emp_data_norbert["score"])
                 else:
-                    print "Email not found!"
+                    norbert_emails.append("Email not found!")
                 break
 
+        if hunter_emails[index] == norbert_emails[index]:
+            hunter_verify = requests.get("https://api.hunter.io/v2/email-verifier?email=" + hunter_emails[index] + "&api_key=" + HunterAPI_Token)
+            hunter_verify_parsed = json.loads(hunter_verify.text)
+            verify_data = hunter_verify_parsed["data"]
+            verify_results.append(verify_data["result"])
+            verify_scores.append(verify_data["score"])
+        elif hunter_emails[index] != norbert_emails[index]:
+            if hunter_scores[index] > norbert_scores[index]:
+                hunter_verify = requests.get("https://api.hunter.io/v2/email-verifier?email=" + hunter_emails[index] + "&api_key=" + HunterAPI_Token)
+                hunter_verify_parsed = json.loads(hunter_verify.text)
+                verify_data = hunter_verify_parsed["data"]
+                verify_results.append("Hunter" + " " + verify_data["result"])
+                verify_scores.append(verify_data["score"])
+            else:
+                hunter_verify = requests.get("https://api.hunter.io/v2/email-verifier?email=" + norbert_emails[index] + "&api_key=" + HunterAPI_Token)
+                hunter_verify_parsed = json.loads(hunter_verify.text)
+                verify_data = hunter_verify_parsed["data"]
+                verify_results.append("Norbert" + " " + verify_data["result"])
+                verify_scores.append(verify_data["score"])
+
+
         empWriter.writerow(
-            [emp_data_hunter["first_name"]]
-            + [emp_data_hunter["last_name"]]
-            + [emp_data_hunter["email"]]
-            + [emp_data_hunter["score"]]
-            + [emp_data_norbert["email"]]
-            + [emp_data_norbert["score"]]
+            [domains[index]]
+            + [first_names[index]]
+            + [last_names[index]]
+            + [hunter_emails[index]]
+            + [hunter_scores[index]]
+            + [norbert_emails[index]]
+            + [norbert_scores[index]]
+            + [verify_results[index]]
+            + [verify_scores[index]]
             )
 
 employData.close()
