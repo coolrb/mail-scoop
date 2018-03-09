@@ -2,8 +2,8 @@ import requests
 import json
 import csv
 
-HunterAPI_Token = "ae4f979860e00b77649e67369a77064e75f58fff"
-NorbertAPI_TOKEN = 'b8fc1282-6c0d-4679-b8b7-18424c23afb1'
+HunterAPI_Token = ""
+NorbertAPI_TOKEN = ""
 
 first_names = []
 last_names = []

@@ -2,16 +2,16 @@ import requests
 import json
 import csv
 
-HunterAPI_Key = "ae4f979860e00b77649e67369a77064e75f58fff"
+HunterAPI_Key = ""
 
 domains = []
 
-with open('domains.csv', 'rb') as csvfile:
+with open('DomainInput.csv', 'rb') as csvfile:
     reader = csv.reader(csvfile, delimiter=',')
     for row in reader:
         domains.append(row[0])
 
-with open('DomainData.csv', 'w') as DomainData:
+with open('DomainOutput.csv', 'w') as DomainData:
     for company in domains:
         hunter = "https://api.hunter.io/v2/domain-search?domain=" + company + "&api_key=" + HunterAPI_Key
 
